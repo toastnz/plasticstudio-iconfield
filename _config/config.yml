@@ -1,2 +1,7 @@
-IconField:
-  icons_directory: /site/icons/
+---
+Name: iconfield
+Before:
+  - "#app"
+---
+PlasticStudio\IconField:
+  icons_directory: _resources/app/client/assets/icons
