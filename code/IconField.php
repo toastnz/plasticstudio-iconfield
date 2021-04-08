@@ -69,7 +69,7 @@ class IconField extends OptionsetField
     {
         return (!empty($sourceFolder))
             ? $sourceFolder
-            : Config::inst()->get(__CLASS__, 'icons_directory');
+            : Config::inst()->get('PlasticStudio\IconField', 'icons_directory');
     }
     
 
