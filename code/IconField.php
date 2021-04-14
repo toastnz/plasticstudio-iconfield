@@ -3,61 +3,38 @@
 namespace PlasticStudio\IconField;
 
 use DirectoryIterator;
+use SilverStripe\Core\Path;
+use SilverStripe\Dev\Debug;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\View\ArrayData;
 use SilverStripe\Forms\FormField;
 use SilverStripe\View\Requirements;
-use SilverStripe\Control\Controller;
+use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\OptionsetField;
 use SilverStripe\Core\Manifest\ModuleResourceLoader;
 
 class IconField extends OptionsetField
 {
-    public static $sourceFolder;
-    
+    private static $folder_name;
+
     /**
      * Construct the field
      *
      * @param string $name
      * @param null|string $title
-     * @param string $sourceFolder
+     * @param string $sourceFolder (legacy arg, for backwards-compatibility)
      *
      * @return array icons to provide as source array for the field
      **/
     public function __construct($name, $title = null, $sourceFolder = null)
     {
-        parent::__construct($name, $title, []);
-
-        $sourceFolder = $this->getSourceFolder($sourceFolder);
-
-        // not entirely sure we need to run this through resolvePath
-        // TODO: further testing to see if it's necessary
-        $sourcePath = ModuleResourceLoader::singleton()->resolvePath($sourceFolder);
-
-        
-        $icons = [];
-        $extensions = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg');
-
-        // Scan each directory for files
-        if (file_exists($sourcePath)) {
-            $directory = new DirectoryIterator($sourcePath);
-            foreach ($directory as $fileinfo) {
-                if ($fileinfo->isFile()) {
-                    $extension = strtolower(pathinfo($fileinfo->getFilename(), PATHINFO_EXTENSION));
-
-                    // Only add to our available icons if it's an extension we're after
-                    if (in_array($extension, $extensions)) {
-                        $value = Controller::join_links($sourceFolder, $fileinfo->getFilename());
-                        $title = $fileinfo->getFilename();
-                        $icons[$value] = $title;
-                    }
-                }
-            }
+        if ($sourceFolder) {
+            // TODO: set deprecation notice
+            // eg, "IconField no longer accepts Source Folder as a third parameter. Please use IconField->setFolderName() instead"
+            $this->setFolderName($sourceFolder);
         }
-        
-        $this->source = $icons;
-        Requirements::css('plasticstudio/iconfield:css/IconField.css');
+        parent::__construct($name, $title, []);
     }
 
     /**
@@ -65,53 +42,120 @@ class IconField extends OptionsetField
      *
      * @return string
      */
-    public function getSourceFolder($sourceFolder)
+    public function getFolderName()
     {
-        return (!empty($sourceFolder))
-            ? $sourceFolder
-            : Config::inst()->get('PlasticStudio\IconField', 'icons_directory');
+        if (is_null(self::$folder_name)) {
+            self::$folder_name = Config::inst()->get(IconField::class, 'icons_directory');
+        }
+        return self::$folder_name;
     }
-    
+
+    public function setFolderName($folder_name)
+    {
+        self::$folder_name = $folder_name;
+        return $this;
+    }
+
+    public function setSourceIcons()
+    {
+        $icons = [];
+        $extensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'];
+        $relative_folder_path = ModuleResourceLoader::singleton()->resolveURL($this->getFolderName());
+        $absolute_folder_path = $this->getAbsolutePathFromRelative($relative_folder_path);
+
+
+        // Scan each directory for files
+        if (file_exists($absolute_folder_path)) {
+            $directory = new DirectoryIterator($absolute_folder_path);
+            foreach ($directory as $fileinfo) {
+                if ($fileinfo->isFile()) {
+                    $extension = strtolower(pathinfo($fileinfo->getFilename(), PATHINFO_EXTENSION));
+
+                    // Only add to our available icons if it's an extension we're after
+                    if (in_array($extension, $extensions)) {
+                        $value = Path::join($relative_folder_path, $fileinfo->getFilename());
+                        $title = $fileinfo->getFilename();
+                        $icons[$value] = $title;
+                    }
+                }
+            }
+        }
+
+        $this->source = $icons;
+        return $this;
+    }
+
+    /**
+     * Generate absolute path from relative path
+     * (ie, prepend publicFolder or baseFolder path)
+     * @param string relative path
+     *
+     * @return string absolute path
+     */
+    public function getAbsolutePathFromRelative($relative_path)
+    {
+        return Path::join(
+            (Director::publicDir() ? Director::publicFolder() : Director::baseFolder()),
+            ModuleResourceLoader::singleton()->resolveURL($relative_path)
+        );
+    }
+
+    /**
+     * Generate full relative path from partial relative path.
+     * Uses ModuleResourceLoader->resolveURL to handle addition of _resources dir etc
+     * For example, the icon path is stored in the db as 'app/client/assets/icons/default/icon.svg'
+     * but we need the full relative path to render the icon in the field template: '/_resources/app/client/assets/icons/default/icon.svg'
+     * @param string partial relative path
+     *
+     * @return string full relative path
+     */
+
+    public function getFullRelativePath($path)
+    {
+        return ModuleResourceLoader::singleton()->resolveURL($path);
+    }
 
     /**
      * Build the field
      *
      * @return HTML
      **/
-    public function Field($properties = array())
+    public function Field($properties = [])
     {
+        Requirements::css('plasticstudio/iconfield:css/IconField.css');
+        $this->setSourceIcons();
         $source = $this->getSource();
-        $odd = 0;
-        $options = array();
+        $options = [];
 
         // Add a clear option
-        $options[] = ArrayData::create(array(
+        $options[] = ArrayData::create([
             'ID' => 'none',
             'Name' => $this->name,
             'Value' => '',
             'Title' => '',
             'isChecked' => (!$this->value || $this->value == '')
-        ));
+        ]);
 
         if ($source) {
             foreach ($source as $value => $title) {
                 $itemID = $this->ID() . '_' . preg_replace('/[^a-zA-Z0-9]/', '', $value);
-                $options[] = ArrayData::create(array(
+                $options[] = ArrayData::create([
                     'ID' => $itemID,
                     'Name' => $this->name,
                     'Value' => $value,
                     'Title' => $title,
                     'isChecked' => $value == $this->value
-                ));
+                ]);
             }
         }
 
-        $properties = array_merge($properties, array(
+        $properties = array_merge($properties, [
             'Options' => ArrayList::create($options)
-        ));
+        ]);
 
-        return $this->customise($properties)->renderWith('IconField');
-        //return FormField::Field($properties);
+        $this->setTemplate('IconField');
+
+        return FormField::Field($properties);
     }
 
     /**
@@ -119,9 +163,9 @@ class IconField extends OptionsetField
      **/
     public function extraClass()
     {
-        $classes = array('field', 'IconField', parent::extraClass());
+        $classes = ['field', 'IconField', parent::extraClass()];
 
-        if (($key = array_search("icon", $classes)) !== false) {
+        if (($key = array_search('icon', $classes)) !== false) {
             unset($classes[$key]);
         }
 
