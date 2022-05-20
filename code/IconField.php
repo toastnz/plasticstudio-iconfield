@@ -35,6 +35,8 @@ class IconField extends OptionsetField
             $this->setFolderName($sourceFolder);
         }
         parent::__construct($name, $title, []);
+        
+        $this->setSourceIcons();
     }
 
     /**
@@ -123,7 +125,6 @@ class IconField extends OptionsetField
     public function Field($properties = [])
     {
         Requirements::css('plasticstudio/iconfield:css/IconField.css');
-        $this->setSourceIcons();
         $source = $this->getSource();
         $options = [];
 
