@@ -10,8 +10,6 @@ use SilverStripe\Core\Manifest\ModuleResourceLoader;
 
 class Icon extends DBField
 {
-    private static $table_name = 'Icon';
-
     private static $casting = array(
         'URL' => 'HTMLFragment',
         'IMG' => 'HTMLFragment',
