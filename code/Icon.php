@@ -10,17 +10,16 @@ use SilverStripe\Core\Manifest\ModuleResourceLoader;
 
 class Icon extends DBField
 {
-    public function requireField()
-    {
-        DB::require_field($this->tableName, $this->name, 'Varchar(1024)');
-    }
-
     private static $casting = array(
         'URL' => 'HTMLFragment',
         'IMG' => 'HTMLFragment',
         'SVG' => 'HTMLFragment'
     );
-    
+
+    public function requireField()
+    {
+        DB::require_field($this->tableName, $this->name, 'Varchar(1024)');
+    }    
 
     /**
      * Default casting for this field
@@ -40,7 +39,7 @@ class Icon extends DBField
      */
     public function getTag()
     {
-        $url = $this->URL();
+        $url = $this->URL() ?? '';
         
         // We are an SVG, so return the SVG data
         if (substr($url, strlen($url) - 4) === '.svg') {
@@ -82,12 +81,12 @@ class Icon extends DBField
      **/
     public function SVG()
     {
-        $url = $this->URL();
+        $url = $this->URL() ?? '';
 
         if (substr($url, strlen($url) - 4) !== '.svg') {
             user_error('Deprecation notice: Direct access to $Icon.SVG in templates is deprecated, please use $Icon', E_USER_WARNING);
         }
-        
+
         $filePath = Path::join(
             Director::baseFolder(),
             $url
@@ -98,7 +97,7 @@ class Icon extends DBField
         }
 
         $svg = file_get_contents($filePath);
-        return '<span class="icon svg">'.$svg.'</span>';
+        return '<span class="icon svg">'.$svg.'</span>';    
     }
 
     /**
