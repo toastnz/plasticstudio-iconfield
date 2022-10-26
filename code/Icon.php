@@ -11,7 +11,7 @@ use SilverStripe\Core\Manifest\ModuleResourceLoader;
 class Icon extends DBField
 {
     private static $table_name = 'Icon';
-    
+
     private static $casting = array(
         'URL' => 'HTMLFragment',
         'IMG' => 'HTMLFragment',
@@ -43,11 +43,13 @@ class Icon extends DBField
     {
         $url = $this->URL();
         
-        // We are an SVG, so return the SVG data
-        if (substr($url, strlen($url ?? '') - 4) === '.svg') {
-            return $this->SVG();
-        } else {
-            return $this->IMG();
+        if ($url != '') {
+            // We are an SVG, so return the SVG data
+            if (substr($url, strlen($url) - 4) === '.svg') {
+                return $this->SVG();
+            } else {
+                return $this->IMG();
+            }
         }
     }
     
@@ -85,21 +87,23 @@ class Icon extends DBField
     {
         $url = $this->URL();
 
-        if (substr($url, strlen($url ?? '') - 4) !== '.svg') {
-            user_error('Deprecation notice: Direct access to $Icon.SVG in templates is deprecated, please use $Icon', E_USER_WARNING);
-        }
-        
-        $filePath = Path::join(
-            Director::baseFolder(),
-            $url
-        );
+        if ($url != '') {
+            if (substr($url, strlen($url) - 4) !== '.svg') {
+                user_error('Deprecation notice: Direct access to $Icon.SVG in templates is deprecated, please use $Icon', E_USER_WARNING);
+            }
 
-        if (!file_exists($filePath)) {
-            return false;
-        }
+            $filePath = Path::join(
+                Director::baseFolder(),
+                $url
+            );
 
-        $svg = file_get_contents($filePath);
-        return '<span class="icon svg">'.$svg.'</span>';
+            if (!file_exists($filePath)) {
+                return false;
+            }
+
+            $svg = file_get_contents($filePath);
+            return '<span class="icon svg">'.$svg.'</span>';
+        }
     }
 
     /**
