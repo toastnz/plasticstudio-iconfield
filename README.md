@@ -39,3 +39,11 @@ IconField::create('SocialIcon, 'Icon')->setFolderName('app/client/assets/icons/s
 ```
 
 - Use your icon in templates as you would any other property (eg `$PageIcon`). If your icon is an SVG, the SVG image data will be injected into the template. To prevent this, you can call `$PageIcon.IMG` instead to enforce use of `<img>` tags.
+
+- Add a default width and height to the config.yml file to output width/height attributes on image tags
+
+```
+DefaultIconSize:
+  default_width: "120"
+  default_height: "120"
+```

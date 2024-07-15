@@ -2,10 +2,11 @@
 
 namespace PlasticStudio\IconField;
 
-use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\ORM\DB;
 use SilverStripe\Core\Path;
 use SilverStripe\Control\Director;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\Core\Manifest\ModuleResourceLoader;
 
 class Icon extends DBField
@@ -73,10 +74,25 @@ class Icon extends DBField
         if (!$url) {
             return false;
         } else {
-            $filename = basename($url);
+            // get just the filename (without the resize parameters)
+            $pos = strpos(basename($url), '__');
+            $filename = substr(basename($url), 0, $pos);
         }
 
-        return '<img class="icon" src="'.$url.'" alt="' . $filename . '" />';
+        // check for default width and height in the site's config.yml
+        $width = false;
+        $default_width = Config::inst()->get('DefaultIconSize', 'default_width');
+        if ($default_width) {
+            $width = 'width="'.$default_width.'"';
+        }
+
+        $height = false;
+        $default_height = Config::inst()->get('DefaultIconSize', 'default_height');
+        if ($default_height) {
+            $height = 'height="'.$default_height.'"';
+        }
+
+        return '<img class="icon" src="'.$url.'" '.$width.' '.$height.' alt="' . $filename . '" />';
     }
 
 
