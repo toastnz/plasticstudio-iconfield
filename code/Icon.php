@@ -70,7 +70,13 @@ class Icon extends DBField
     {
         $url = ModuleResourceLoader::singleton()->resolveURL($this->URL());
 
-        return '<img class="icon" src="'.$url.'" />';
+        if (!$url) {
+            return false;
+        } else {
+            $filename = basename($url);
+        }
+
+        return '<img class="icon" src="'.$url.'" alt="' . $filename . '" />';
     }
 
 
