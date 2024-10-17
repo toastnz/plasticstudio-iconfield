@@ -4,7 +4,7 @@ namespace PlasticStudio\IconField;
 
 use DirectoryIterator;
 use SilverStripe\Core\Path;
-use SilverStripe\Dev\Debug;
+use SilverStripe\Assets\Folder;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\View\ArrayData;
 use SilverStripe\Forms\FormField;
@@ -29,15 +29,86 @@ class IconField extends OptionsetField
      **/
     public function __construct($name, $title = null, $sourceFolder = null)
     {
-        if ($sourceFolder) {
-            // TODO: set deprecation notice
-            // eg, "IconField no longer accepts Source Folder as a third parameter. Please use IconField->setFolderName() instead"
-            $this->setFolderName($sourceFolder);
-        }
+        // if ($sourceFolder) {
+        //     // TODO: set deprecation notice
+        //     // eg, "IconField no longer accepts Source Folder as a third parameter. Please use IconField->setFolderName() instead"
+        //     $this->setFolderName($sourceFolder);
+        // } else {
+        //     // check default folder
+        //     $exists = $this->checkForIconFolder($folderName);
+
+        //     // set default folder
+
+
+
+        // }
+
         parent::__construct($name, $title, []);
         
         $this->setSourceIcons();
     }
+
+    public function requireDefaultRecords()
+	{
+        parent::requireDefaultRecords();
+            
+        $iconsFolder = Folder::find_or_make($this->getFolderName());
+        $iconsFolder->publishFile();
+        
+    }
+
+    // public function checkForIconFolder($folderName) {
+
+    //     $folder = Folder::get()->filter('Name', $folderName)->first();
+
+    //     if (!file_exists($folder)) {
+    //         $folder = Folder::find_or_make($iconsFolder->Filename . '/' . $newFolder);
+    //         $folder->ParentID = $iconsFolder->ID;
+    //         $folder->write();
+    //         $folder->publishFile();
+
+    //         $folderPath = Path::join(
+    //             ASSETS_PATH,
+    //             $iconsFolder->Name,
+    //             $folder->Name
+    //         );
+
+    //         if (!file_exists($folderPath)) {
+    //             return false;
+    //         } else {
+    //             return true;
+    //         }
+    //     }
+    // }
+
+    // public function createIconFolder($newFolder) {
+
+    //     $iconsFolder = Folder::find_or_make('Icons');
+	// 	$iconsFolder->publishFile();
+
+    //     if ($newFolder == 'Icons') {
+    //         return '/assets/' . $iconsFolder->Name;
+    //     } else {            
+
+    //         $folder = Folder::find_or_make($iconsFolder->Filename . '/' . $newFolder);
+    //         $folder->ParentID = $iconsFolder->ID;
+    //         $folder->write();
+    //         $folder->publishFile();
+
+    //         $folderPath = Path::join(
+    //             ASSETS_PATH,
+    //             $iconsFolder->Name,
+    //             $folder->Name
+    //         );
+            
+    //         if (!file_exists($folderPath)) {
+    //             mkdir($folderPath);
+    //         }
+
+    //         return '/assets/' . $iconsFolder->Name . '/' . $newFolder;
+        
+    //     }
+    // }
 
     /**
      * Gets the icons folder name
@@ -47,10 +118,23 @@ class IconField extends OptionsetField
     public function getFolderName()
     {
         if (is_null(self::$folder_name)) {
-            self::$folder_name = Config::inst()->get(IconField::class, 'icons_directory');
+            self::$folder_name = Config::inst()->get(IconField::class, 'icons_folder_name');
         }
         return self::$folder_name;
     }
+
+    // /**
+    //  * Gets the icons folder name
+    //  *
+    //  * @return string
+    //  */
+    // public function getFolderName()
+    // {
+    //     if (is_null(self::$folder_name)) {
+    //         self::$folder_name = Config::inst()->get(IconField::class, 'icons_directory');
+    //     }
+    //     return self::$folder_name;
+    // }
 
     public function setFolderName($folder_name)
     {
