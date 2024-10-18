@@ -9,6 +9,7 @@ use SilverStripe\ORM\ArrayList;
 use SilverStripe\View\ArrayData;
 use SilverStripe\Forms\FormField;
 use SilverStripe\View\Requirements;
+use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\OptionsetField;
 use SilverStripe\Forms\UploadReceiver;
 use SilverStripe\Core\Manifest\ModuleResourceLoader;
@@ -16,6 +17,8 @@ use SilverStripe\Core\Manifest\ModuleResourceLoader;
 class IconField extends OptionsetField
 {
     use UploadReceiver;
+
+    private static $folder_name;
     
     /**
      * Construct the field
@@ -35,6 +38,25 @@ class IconField extends OptionsetField
         parent::__construct($name, $title, []);
         
         $this->setSourceIcons();
+    }
+
+    /**
+     * Gets the icons folder name
+     *
+     * @return string
+     */
+    public function getFolderName()
+    {
+        if (is_null(self::$folder_name)) {
+            self::$folder_name = Config::inst()->get(IconField::class, 'icons_folder_name');
+        }
+        return self::$folder_name;
+    }
+
+    public function setFolderName($folder_name)
+    {
+        self::$folder_name = $folder_name;
+        return $this;
     }
 
     public function setSourceIcons()
@@ -125,6 +147,10 @@ class IconField extends OptionsetField
         $properties = array_merge($properties, [
             'Options' => ArrayList::create($options)
         ]);
+
+        $folderLink = Folder::find_or_make($this->getFolderName())->CMSEditLink();
+
+        $this->setDescription('Icon files can be managed in the Files section <a href="' . $folderLink . '">' . $this->getFolderName() . ' folder</a>.');
 
         $this->setTemplate('IconField');
 

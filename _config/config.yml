@@ -6,4 +6,5 @@ Before:
 ---
 PlasticStudio\IconField\IconField:
   icons_folder_name: Icons
-  default_height: 30
+  default_width: "30"
+  default_height: "30"

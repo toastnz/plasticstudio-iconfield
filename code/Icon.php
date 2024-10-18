@@ -73,26 +73,22 @@ class Icon extends DBField
 
         if (!$url) {
             return false;
-        } else {
-            // get just the filename (without the resize parameters)
-            $pos = strpos(basename($url), '__');
-            $filename = substr(basename($url), 0, $pos);
         }
 
         // check for default width and height in the site's config.yml
         $width = false;
-        $default_width = Config::inst()->get('DefaultIconSize', 'default_width');
+        $default_width = Config::inst()->get(IconField::class, 'default_width');
         if ($default_width) {
             $width = 'width="'.$default_width.'"';
         }
 
         $height = false;
-        $default_height = Config::inst()->get('DefaultIconSize', 'default_height');
+        $default_height = Config::inst()->get(IconField::class, 'default_height');
         if ($default_height) {
             $height = 'height="'.$default_height.'"';
         }
 
-        return '<img class="icon" src="'.$url.'" '.$width.' '.$height.' alt="' . $filename . '" />';
+        return '<img class="icon" src="'.$url.'" '.$width.' '.$height.' alt="" />'; // alt is blank because icons generally don't add value to screen readers
     }
 
 
