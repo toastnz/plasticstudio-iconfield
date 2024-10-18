@@ -6,4 +6,4 @@ Before:
 ---
 PlasticStudio\IconField\IconField:
   icons_folder_name: Icons
-  icons_directory: app/client/assets/icons/default
+  default_height: 30

@@ -4,20 +4,19 @@ namespace PlasticStudio\IconField;
 
 use DirectoryIterator;
 use SilverStripe\Core\Path;
-use SilverStripe\Dev\Debug;
+use SilverStripe\Assets\Folder;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\View\ArrayData;
 use SilverStripe\Forms\FormField;
 use SilverStripe\View\Requirements;
-use SilverStripe\Control\Director;
-use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\OptionsetField;
+use SilverStripe\Forms\UploadReceiver;
 use SilverStripe\Core\Manifest\ModuleResourceLoader;
 
 class IconField extends OptionsetField
 {
-    private static $folder_name;
-
+    use UploadReceiver;
+    
     /**
      * Construct the field
      *
@@ -30,41 +29,24 @@ class IconField extends OptionsetField
     public function __construct($name, $title = null, $sourceFolder = null)
     {
         if ($sourceFolder) {
-            // TODO: set deprecation notice
-            // eg, "IconField no longer accepts Source Folder as a third parameter. Please use IconField->setFolderName() instead"
             $this->setFolderName($sourceFolder);
         }
+
         parent::__construct($name, $title, []);
         
         $this->setSourceIcons();
-    }
-
-    /**
-     * Gets the icons folder name
-     *
-     * @return string
-     */
-    public function getFolderName()
-    {
-        if (is_null(self::$folder_name)) {
-            self::$folder_name = Config::inst()->get(IconField::class, 'icons_directory');
-        }
-        return self::$folder_name;
-    }
-
-    public function setFolderName($folder_name)
-    {
-        self::$folder_name = $folder_name;
-        return $this;
     }
 
     public function setSourceIcons()
     {
         $icons = [];
         $extensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'];
-        $relative_folder_path = $this->getFolderName();
-        $absolute_folder_path = $this->getAbsolutePathFromRelative($relative_folder_path);
 
+        $relative_folder_path = Folder::find_or_make($this->getFolderName())->Filename;
+        $absolute_folder_path = Path::join(
+            ASSETS_PATH,
+            $relative_folder_path,
+        );
 
         // Scan each directory for files
         if (file_exists($absolute_folder_path)) {
@@ -75,9 +57,14 @@ class IconField extends OptionsetField
 
                     // Only add to our available icons if it's an extension we're after
                     if (in_array($extension, $extensions)) {
-                        $value = Path::join($relative_folder_path, $fileinfo->getFilename());
+                        $value = Path::join('assets', $relative_folder_path, $fileinfo->getFilename());
                         $title = $fileinfo->getFilename();
-                        $icons[$value] = $title;
+
+                        // don't include resized images in the list (for non-svg files)
+                        if (!str_contains($title, '__FitMax')) {
+                            $icons[$value] = $title;
+                        }
+                        
                     }
                 }
             }
@@ -85,21 +72,6 @@ class IconField extends OptionsetField
 
         $this->source = $icons;
         return $this;
-    }
-
-    /**
-     * Generate absolute path from relative path
-     * (ie, prepend publicFolder or baseFolder path)
-     * @param string relative path
-     *
-     * @return string absolute path
-     */
-    public function getAbsolutePathFromRelative($relative_path)
-    {
-        return Path::join(
-            (Director::publicDir() ? Director::publicFolder() : Director::baseFolder()),
-            ModuleResourceLoader::singleton()->resolveURL($relative_path)
-        );
     }
 
     /**
