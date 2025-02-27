@@ -14,7 +14,7 @@ Provides a visual icon picker for content authors. Icon files are managable via 
 
 # Version
 - Use release 1 for legacy non-cms editable icon files
-- Release 2 updated icon files managed in CMS Files area
+- Use release 2 updated icon files managed in CMS Files area
 
 # Migration
 
@@ -43,7 +43,7 @@ use PlasticStudio\IconField\IconField;
 
 - Use your icon in templates as you would any other property (eg `$PageIcon`). If your icon is an SVG, the SVG image data will be injected into the template. To prevent this, you can call `$PageIcon.IMG` instead to enforce use of `<img>` tags.
 
-- Add a default width and height to the config.yml file to output width/height attributes on image tags
+- Add a default width and height to the config.yml file to output width/height attributes on image tags, e.g. `<img width="30" height="30" />`. This is good for SEO.
 
 ```
 PlasticStudio\IconField\IconField:
