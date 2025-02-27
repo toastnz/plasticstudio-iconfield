@@ -22,7 +22,8 @@ If migrating from release 1 to 2:
 - update IconFields to use new source path, eg `IconField::create('SocialIcon', 'Icon', 'SiteIcons')`
 - create new folders in CMS Files area based on IconField set up, eg `SiteIcons`
 - upload and publish icons
-- run task `IconFieldPathMigrator_BuildTask` for each class that has been updated, add params `?class=SummaryPanel&field=SVGIcon`
+- run task `IconFieldPathMigrator_BuildTask` for each class that has been updated
+- make sure to add params `?class=Skeletor\DataObjects\SummaryPanel&field=SVGIcon`
 - if your new folder is not 'SiteIcons', add this to the params as well, eg `&new-path=NewFolder`
 - lastly, remove the icon folder from client/assets
 

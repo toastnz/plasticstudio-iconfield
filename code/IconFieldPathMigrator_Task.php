@@ -1,14 +1,16 @@
 <?php
 
 use SilverStripe\Dev\BuildTask;
+use SilverStripe\Core\ClassInfo;
 
 class IconFieldPathMigrator_BuildTask extends BuildTask
 {
     /**
-     * 1. Set up new folder in assets/Icons for the field
+     * 1. Update IconField fields to use new folder path, eg `IconField::create('SocialIcon', 'Icon', 'SiteIcons')`
+     * 1. Set up new folder in assets/SiteIcons in the CMS
      * 2. Copy the icons into the folder
      * 3. Publish the icon files
-     * 4. Run this task
+     * 4. Run this task - include params
      */
 
     protected $title = 'Update icon file paths to assets folder';
@@ -19,12 +21,13 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
         $vars = $request->getVars();
 
         if (!isset($vars['class']) || !isset($vars['field'])) {
-            echo 'Pass both class and field in the query string, eg ?class=SummaryPanel&field=SVGIcon' . '<br>';
+            echo 'Pass both class and field in the query string, eg ?classname=Skeletor\DataObjects\SummaryPanel&field=SVGIcon' . '<br>';
             echo 'If new folder is not \'SiteIcons\', pass new-path in the query string, eg &new-path=NewFolder' . '<br>';
+            echo 'Classname needs to include namespacing' . '<br>';
             return;
         }
 
-        $class = $vars['class'];
+        $classname = $vars['class'];
         $iconField = $vars['field'];
 
         // check for folder path
@@ -34,7 +37,12 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
             $folderPath = 'assets/SiteIcons';
         }
 
-        $objects = $class::get();
+        // check if site is namespaced
+        if (!ClassInfo::exists($classname)) {
+            die("Class $classname does not exist. Make sure to add the namespacing.");
+        }
+
+        $objects = $classname::get();
 
         if ($objects) {
             foreach ($objects as $object) {
@@ -59,6 +67,8 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
 
                 echo '<br />-------<br />';
             }
+        } else {
+            echo 'No objects found';
         }
     }
 }
