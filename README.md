@@ -12,6 +12,20 @@ Provides a visual icon picker for content authors. Icon files are managable via 
 
 - SilverStripe 4 or 5
 
+# Version
+- Use release 1 for legacy non-cms editable icon files
+- Release 2 updated icon files managed in CMS Files area
+
+# Migration
+
+If migrating from release 1 to 2:
+- update IconFields to use new source path, eg `IconField::create('SocialIcon', 'Icon', 'SiteIcons')`
+- create new folders in CMS Files area based on IconField set up, eg `SiteIcons`
+- upload and publish icons
+- run task `IconFieldPathMigrator_BuildTask` for each class that has been updated, add params `?class=SummaryPanel&field=SVGIcon`
+- if your new folder is not 'SiteIcons', add this to the params as well, eg `&new-path=NewFolder`
+- lastly, remove the icon folder from client/assets
+
 # Usage
 
 - Import the required classes:
@@ -22,21 +36,17 @@ use PlasticStudio\IconField\IconField;
 ```
 
 - Set your `$db` field to type `Icon` (eg `'PageIcon' => Icon::class`)
-- `IconField::create($name, $title)`
+- `IconField::create($name, $title, $folderName)`
   - `$name` is the database field as defined in your class
   - `$title` is the label for this field
-- Add a folder containing icons to your project; icons in this folder will be used by the field as options which you can select. The default location of this folder (as defined in `_config/config.yml`) is `Icons`. You can override this global default in your project's own config like so:
-
-```
-PlasticStudio\IconField\IconField:
-  icons_folder_name: SocialIcons
-```
+  - `$folderName` is the name of the folder inside the Assets, nested folders are allowed
 
 - Use your icon in templates as you would any other property (eg `$PageIcon`). If your icon is an SVG, the SVG image data will be injected into the template. To prevent this, you can call `$PageIcon.IMG` instead to enforce use of `<img>` tags.
 
 - Add a default width and height to the config.yml file to output width/height attributes on image tags
 
 ```
-default_width: "30"
-default_height: "30"
+PlasticStudio\IconField\IconField:
+  default_width: "30"
+  default_height: "30"
 ```

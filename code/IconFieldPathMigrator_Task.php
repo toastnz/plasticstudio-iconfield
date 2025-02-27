@@ -19,14 +19,20 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
         $vars = $request->getVars();
 
         if (!isset($vars['class']) || !isset($vars['field'])) {
-            echo 'Pass both class and field in the query string, eg ?class=SummaryPanel&field=SVGIcon';
+            echo 'Pass both class and field in the query string, eg ?class=SummaryPanel&field=SVGIcon' . '<br>';
+            echo 'If new folder is not \'SiteIcons\', pass new-path in the query string, eg &new-path=NewFolder' . '<br>';
             return;
         }
 
         $class = $vars['class'];
         $iconField = $vars['field'];
 
-        $folderPath = '/_resources/app/client/assets/project-icons';
+        // check for folder path
+        if ( isset($vars['new-path']) ) {
+            $folderPath = 'assets/' . $vars['new-path'];
+        } else {
+            $folderPath = 'assets/SiteIcons';
+        }
 
         $objects = $class::get();
 
