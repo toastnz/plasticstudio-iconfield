@@ -40,7 +40,7 @@ use PlasticStudio\IconField\IconField;
 - `IconField::create($name, $title, $folderName)`
   - `$name` is the database field as defined in your class
   - `$title` is the label for this field
-  - `$folderName` is the name of the folder inside the Assets, nested folders are allowed
+  - `$folderName` is the name of the folder inside the Assets eg 'SiteIcons', nested folders are allowed eg 'SiteIcons/ProductIcons'
 
 - Use your icon in templates as you would any other property (eg `$PageIcon`). If your icon is an SVG, the SVG image data will be injected into the template. To prevent this, you can call `$PageIcon.IMG` instead to enforce use of `<img>` tags.
 
