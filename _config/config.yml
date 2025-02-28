@@ -5,4 +5,6 @@ Before:
   - "app"
 ---
 PlasticStudio\IconField\IconField:
-  icons_directory: app/client/assets/icons/default
+  icons_folder_name: Icons
+  default_width: "30"
+  default_height: "30"
