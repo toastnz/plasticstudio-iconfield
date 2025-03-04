@@ -1,7 +1,11 @@
 <?php
 
-use SilverStripe\Dev\BuildTask;
 use SilverStripe\Core\ClassInfo;
+use SilverStripe\Core\Convert;
+use SilverStripe\Dev\BuildTask;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DB;
+use SilverStripe\Versioned\Versioned;
 
 class IconFieldPathMigrator_BuildTask extends BuildTask
 {
@@ -20,14 +24,14 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
     {
         $vars = $request->getVars();
 
-        if (!isset($vars['class']) || !isset($vars['field'])) {
+        if (!isset($vars['classname']) || !isset($vars['field'])) {
             echo 'Pass both class and field in the query string, eg ?classname=Skeletor\DataObjects\SummaryPanel&field=SVGIcon' . '<br>';
             echo 'If new folder is not \'SiteIcons\', pass new-path in the query string, eg &new-path=NewFolder' . '<br>';
             echo 'Classname needs to include namespacing' . '<br>';
             return;
         }
 
-        $classname = $vars['class'];
+        $classname = $vars['classname'];
         $iconField = $vars['field'];
 
         // check for folder path
@@ -43,8 +47,15 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
         }
 
         $objects = $classname::get();
+        $schema = DataObject::getSchema();
+        if (!$schema->classHasTable($classname)) {
+            die("Class $classname does not have a table.");
+        }
+        $tableName = Convert::raw2sql($schema->tableName($classname));// Sanitize column name
+        $iconCol = Convert::raw2sql($iconField); // Sanitize column name
 
-        if ($objects) {
+
+        if ($objects && $tableName) {
             foreach ($objects as $object) {
                 // if there is an icon
                 if ($originIconPath = $object->$iconField) {
@@ -57,8 +68,21 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
                     $newIconPath = $folderPath . '/' . $originIconName;
                     echo 'New Icon Path: ' . $newIconPath . '<br>';
 
-                    $object->$iconField = $newIconPath;
-                    $object->write();
+                    DB::prepared_query("UPDATE {$tableName} SET {$iconCol} = ? WHERE ID = ?", [$newIconPath, $object->ID]);
+                    echo $tableName.' updated' . '<br>';
+
+                    if ($object->hasExtension(Versioned::class)) {
+                        $tableNameVersioned = $tableName.'_Versions';
+                        DB::prepared_query("UPDATE {$tableNameVersioned} SET {$iconCol} = ? WHERE RecordID = ?", [$newIconPath, $object->ID]);
+                        echo $tableNameVersioned . '<br>';
+
+                        if ($object->isPublished()) {
+                            $tableNameLive = $tableName.'_Live';
+                            DB::prepared_query("UPDATE {$tableNameLive} SET {$iconCol} = ? WHERE ID = ?", [$newIconPath, $object->ID]);
+                            echo $tableNameLive . '<br>';
+                        }
+                    }
+
 
                     echo 'panel icon updated' . '<br>';
                 } else {
