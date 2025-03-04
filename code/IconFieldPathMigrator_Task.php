@@ -1,9 +1,10 @@
 <?php
 
-use SilverStripe\ORM\DB;
-use SilverStripe\Dev\BuildTask;
 use SilverStripe\Core\ClassInfo;
+use SilverStripe\Core\Convert;
+use SilverStripe\Dev\BuildTask;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DB;
 use SilverStripe\Versioned\Versioned;
 
 class IconFieldPathMigrator_BuildTask extends BuildTask
@@ -46,12 +47,15 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
         }
 
         $objects = $classname::get();
-        $tableName = DB::get_conn()->escapeIdentifier(
-            DataObject::getSchema()->baseDataTable($classname)
-        );
+        $schema = DataObject::getSchema();
+        if (!$schema->classHasTable($classname)) {
+            die("Class $classname does not have a table.");
+        }
+        $tableName = Convert::raw2sql($schema->tableName($classname));// Sanitize column name
+        $iconCol = Convert::raw2sql($iconField); // Sanitize column name
 
 
-        if ($objects) {
+        if ($objects && $tableName) {
             foreach ($objects as $object) {
                 // if there is an icon
                 if ($originIconPath = $object->$iconField) {
@@ -64,16 +68,17 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
                     $newIconPath = $folderPath . '/' . $originIconName;
                     echo 'New Icon Path: ' . $newIconPath . '<br>';
 
-                    DB::prepared_query("UPDATE ? SET ? = ? WHERE ID = ?", [$tableName, $iconField, $newIconPath, $object->ID]);
+                    DB::prepared_query("UPDATE {$tableName} SET {$iconCol} = ? WHERE ID = ?", [$newIconPath, $object->ID]);
                     echo $tableName.' updated' . '<br>';
 
                     if ($object->hasExtension(Versioned::class)) {
-
-                        DB::prepared_query("UPDATE ? SET ? = ? WHERE RecordID = ?", [$tableName.'_Versions', $iconField, $newIconPath, $object->ID]);
+                        $tableNameVersioned = $tableName.'_Versions';
+                        DB::prepared_query("UPDATE {$tableNameVersioned} SET {$iconCol} = ? WHERE RecordID = ?", [$newIconPath, $object->ID]);
                         echo $tableName.'_Versions updated' . '<br>';
 
                         if ($object->isPublished()) {
-                            DB::prepared_query("UPDATE ? SET ? = ? WHERE ID = ?", [$tableName.'_Live', $iconField, $newIconPath, $object->ID]);
+                            $tableNameLive = $tableName.'_Live';
+                            DB::prepared_query("UPDATE {$tableNameLive} SET {$iconCol} = ? WHERE ID = ?", [$newIconPath, $object->ID]);
                             echo $tableName.'_Live updated' . '<br>';
                         }
                     }
