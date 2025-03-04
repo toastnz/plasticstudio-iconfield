@@ -74,12 +74,12 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
                     if ($object->hasExtension(Versioned::class)) {
                         $tableNameVersioned = $tableName.'_Versions';
                         DB::prepared_query("UPDATE {$tableNameVersioned} SET {$iconCol} = ? WHERE RecordID = ?", [$newIconPath, $object->ID]);
-                        echo $tableName.'_Versions updated' . '<br>';
+                        echo $tableNameVersioned . '<br>';
 
                         if ($object->isPublished()) {
                             $tableNameLive = $tableName.'_Live';
                             DB::prepared_query("UPDATE {$tableNameLive} SET {$iconCol} = ? WHERE ID = ?", [$newIconPath, $object->ID]);
-                            echo $tableName.'_Live updated' . '<br>';
+                            echo $tableNameLive . '<br>';
                         }
                     }
 
