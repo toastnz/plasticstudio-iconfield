@@ -1,7 +1,10 @@
 <?php
 
+use SilverStripe\ORM\DB;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\Core\ClassInfo;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Versioned\Versioned;
 
 class IconFieldPathMigrator_BuildTask extends BuildTask
 {
@@ -43,6 +46,10 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
         }
 
         $objects = $classname::get();
+        $tableName = DB::get_conn()->escapeIdentifier(
+            DataObject::getSchema()->baseDataTable($classname)
+        );
+
 
         if ($objects) {
             foreach ($objects as $object) {
@@ -57,8 +64,20 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
                     $newIconPath = $folderPath . '/' . $originIconName;
                     echo 'New Icon Path: ' . $newIconPath . '<br>';
 
-                    $object->$iconField = $newIconPath;
-                    $object->write();
+                    DB::prepared_query("UPDATE ? SET ? = ? WHERE ID = ?", [$tableName, $iconField, $newIconPath, $object->ID]);
+                    echo $tableName.' updated' . '<br>';
+
+                    if ($object->hasExtension(Versioned::class)) {
+
+                        DB::prepared_query("UPDATE ? SET ? = ? WHERE RecordID = ?", [$tableName.'_Versions', $iconField, $newIconPath, $object->ID]);
+                        echo $tableName.'_Versions updated' . '<br>';
+
+                        if ($object->isPublished()) {
+                            DB::prepared_query("UPDATE ? SET ? = ? WHERE ID = ?", [$tableName.'_Live', $iconField, $newIconPath, $object->ID]);
+                            echo $tableName.'_Live updated' . '<br>';
+                        }
+                    }
+
 
                     echo 'panel icon updated' . '<br>';
                 } else {
