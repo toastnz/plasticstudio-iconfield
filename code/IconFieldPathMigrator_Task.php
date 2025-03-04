@@ -20,14 +20,14 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
     {
         $vars = $request->getVars();
 
-        if (!isset($vars['class']) || !isset($vars['field'])) {
+        if (!isset($vars['classname']) || !isset($vars['field'])) {
             echo 'Pass both class and field in the query string, eg ?classname=Skeletor\DataObjects\SummaryPanel&field=SVGIcon' . '<br>';
             echo 'If new folder is not \'SiteIcons\', pass new-path in the query string, eg &new-path=NewFolder' . '<br>';
             echo 'Classname needs to include namespacing' . '<br>';
             return;
         }
 
-        $classname = $vars['class'];
+        $classname = $vars['classname'];
         $iconField = $vars['field'];
 
         // check for folder path
