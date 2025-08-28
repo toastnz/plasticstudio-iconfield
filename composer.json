@@ -28,8 +28,9 @@
 	"require": {
 		"silverstripe/cms": "^6",
 		"silverstripe/framework": "^6",
-        "silverstripe/vendor-plugin": "^2"
+        "silverstripe/vendor-plugin": "^2 || ^3"
 	},
 	"minimum-stability": "dev"
 }
+
 
