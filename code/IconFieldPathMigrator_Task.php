@@ -1,11 +1,16 @@
 <?php
 
-use SilverStripe\Core\ClassInfo;
+use SilverStripe\ORM\DB;
 use SilverStripe\Core\Convert;
 use SilverStripe\Dev\BuildTask;
+use SilverStripe\Core\ClassInfo;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\DB;
+use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Versioned\Versioned;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\PolyExecution\PolyOutput;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
 
 class IconFieldPathMigrator_BuildTask extends BuildTask
 {
@@ -17,18 +22,19 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
      * 4. Run this task - include params
      */
 
-    protected $title = 'Update icon file paths to assets folder';
-    protected $enabled = true;
+    protected string $title = 'Update icon file paths to assets folder';
+    protected static string $commandName = 'IconFieldPathMigrator';
 
-    public function run($request)
+    protected function execute(InputInterface $input, PolyOutput $output): int
     {
+        $request = Injector::inst()->get(HTTPRequest::class);
         $vars = $request->getVars();
 
         if (!isset($vars['classname']) || !isset($vars['field'])) {
             echo 'Pass both class and field in the query string, eg ?classname=Skeletor\DataObjects\SummaryPanel&field=SVGIcon' . '<br>';
             echo 'If new folder is not \'SiteIcons\', pass new-path in the query string, eg &new-path=NewFolder' . '<br>';
             echo 'Classname needs to include namespacing' . '<br>';
-            return;
+            return Command::FAILURE;
         }
 
         $classname = $vars['classname'];
@@ -94,5 +100,6 @@ class IconFieldPathMigrator_BuildTask extends BuildTask
         } else {
             echo 'No objects found';
         }
+        return Command::SUCCESS;
     }
 }

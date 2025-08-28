@@ -4,6 +4,7 @@ namespace PlasticStudio\IconField;
 
 use SilverStripe\ORM\DB;
 use SilverStripe\Core\Path;
+use SilverStripe\Forms\FormField;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\FieldType\DBField;
@@ -17,7 +18,7 @@ class Icon extends DBField
         'SVG' => 'HTMLFragment'
     );
 
-    public function requireField()
+    public function requireField(): void
     {
         DB::require_field($this->tableName, $this->name, 'Varchar(1024)');
     }
@@ -27,7 +28,7 @@ class Icon extends DBField
      *
      * @return string
      */
-    public function forTemplate()
+    public function forTemplate() : string
     {
         return $this->getTag();
     }
@@ -122,7 +123,7 @@ class Icon extends DBField
      * (non-PHPdoc)
      * @see DBField::scaffoldFormField()
      */
-    public function scaffoldFormField($title = null, $params = null)
+     public function scaffoldFormField(?string $title = null, array $params = []): ?FormField
     {
         return IconField::create($this->name, $title);
     }
