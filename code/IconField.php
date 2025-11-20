@@ -5,8 +5,9 @@ namespace PlasticStudio\IconField;
 use DirectoryIterator;
 use SilverStripe\Core\Path;
 use SilverStripe\Assets\Folder;
-use SilverStripe\Model\ArrayData;
 use SilverStripe\Forms\FormField;
+use SilverStripe\Model\ArrayData;
+use SilverStripe\Control\Director;
 use SilverStripe\View\Requirements;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\OptionsetField;
@@ -65,21 +66,20 @@ class IconField extends OptionsetField
         $extensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'];
 
         $relative_folder_path = Folder::find_or_make($this->getFolderName())->Filename;
-        $absolute_folder_path = Path::join(
-            ASSETS_PATH,
-            $relative_folder_path,
-        );
+        $absolute_folder_path = $this->getAbsolutePathFromRelative($relative_folder_path);
+        
 
         // Scan each directory for files
         if (file_exists($absolute_folder_path)) {
             $directory = new DirectoryIterator($absolute_folder_path);
             foreach ($directory as $fileinfo) {
+                
                 if ($fileinfo->isFile()) {
                     $extension = strtolower(pathinfo($fileinfo->getFilename(), PATHINFO_EXTENSION));
 
                     // Only add to our available icons if it's an extension we're after
                     if (in_array($extension, $extensions)) {
-                        $value = Path::join('assets', $relative_folder_path, $fileinfo->getFilename());
+                        $value = Path::join($relative_folder_path, $fileinfo->getFilename());
                         $title = $fileinfo->getFilename();
 
                         // don't include resized images in the list (for non-svg files)
@@ -93,7 +93,16 @@ class IconField extends OptionsetField
         }
 
         $this->source = $icons;
+        
         return $this;
+    }
+
+      public function getAbsolutePathFromRelative($relative_path)
+    {
+        return Path::join(
+            (Director::publicDir() ? Director::publicFolder() : Director::baseFolder()),
+            ModuleResourceLoader::singleton()->resolveURL($relative_path)
+        );
     }
 
     /**
@@ -121,6 +130,7 @@ class IconField extends OptionsetField
         Requirements::css('plasticstudio/iconfield:css/IconField.css');
         $source = $this->getSource();
         $options = [];
+
 
         // Add a clear option
         $options[] = ArrayData::create([
@@ -150,7 +160,7 @@ class IconField extends OptionsetField
 
         $folderLink = Folder::find_or_make($this->getFolderName())->CMSEditLink();
 
-        $this->setDescription('Icon files can be managed in the Files section <a href="' . $folderLink . '">' . $this->getFolderName() . ' folder</a>.<br />SVG icons are recommended.');
+        // $this->setDescription('Icon files can be managed in the Files section <a href="' . $folderLink . '">' . $this->getFolderName() . ' folder</a>.<br />SVG icons are recommended.');
 
         $this->setTemplate('IconField');
 
