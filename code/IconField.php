@@ -5,13 +5,13 @@ namespace PlasticStudio\IconField;
 use DirectoryIterator;
 use SilverStripe\Core\Path;
 use SilverStripe\Assets\Folder;
-use SilverStripe\ORM\ArrayList;
-use SilverStripe\View\ArrayData;
+use SilverStripe\Model\ArrayData;
 use SilverStripe\Forms\FormField;
 use SilverStripe\View\Requirements;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\OptionsetField;
 use SilverStripe\Forms\UploadReceiver;
+use SilverStripe\Model\List\ArrayList;
 use SilverStripe\Core\Manifest\ModuleResourceLoader;
 
 class IconField extends OptionsetField
@@ -170,4 +170,5 @@ class IconField extends OptionsetField
 
         return implode(' ', $classes);
     }
+
 }
