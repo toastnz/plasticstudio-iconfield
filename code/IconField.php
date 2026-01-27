@@ -152,7 +152,7 @@ class IconField extends OptionsetField
 
         $folderLink = Folder::find_or_make($this->getFolderName())->CMSEditLink();
 
-        $this->setDescription('Icon files can be managed in the Files section <a href="' . $folderLink . '">' . $this->getFolderName() . ' folder</a>.<br />SVG icons are recommended.');
+        // $this->setDescription('Icon files can be managed in the Files section <a href="' . $folderLink . '">' . $this->getFolderName() . ' folder</a>.<br />SVG icons are recommended.');
 
         $this->setTemplate('IconField');
 
@@ -174,4 +174,5 @@ class IconField extends OptionsetField
     }
 
 }
+
 
