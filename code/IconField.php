@@ -7,6 +7,7 @@ use SilverStripe\Core\Path;
 use SilverStripe\Assets\Folder;
 use SilverStripe\Forms\FormField;
 use SilverStripe\Model\ArrayData;
+use SilverStripe\Control\Director;
 use SilverStripe\View\Requirements;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\OptionsetField;
@@ -66,7 +67,8 @@ class IconField extends OptionsetField
 
         $relative_folder_path = Folder::find_or_make($this->getFolderName())->Filename;
         $absolute_folder_path = Path::join(
-            ASSETS_PATH,
+            Director::publicFolder(),
+            RESOURCES_DIR,
             $relative_folder_path,
         );
 
@@ -79,7 +81,7 @@ class IconField extends OptionsetField
 
                     // Only add to our available icons if it's an extension we're after
                     if (in_array($extension, $extensions)) {
-                        $value = Path::join('assets', $relative_folder_path, $fileinfo->getFilename());
+                        $value = Path::join('_resources', $relative_folder_path, $fileinfo->getFilename());
                         $title = $fileinfo->getFilename();
 
                         // don't include resized images in the list (for non-svg files)
@@ -172,3 +174,4 @@ class IconField extends OptionsetField
     }
 
 }
+
