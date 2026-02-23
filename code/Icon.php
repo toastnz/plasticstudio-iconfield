@@ -59,7 +59,7 @@ class Icon extends DBField
      **/
     public function URL()
     {
-        return $this->getValue();
+        return ModuleResourceLoader::singleton()->resolveURL($this->getValue());
     }
 
 
@@ -70,8 +70,7 @@ class Icon extends DBField
      **/
     public function IMG()
     {
-        $url = ModuleResourceLoader::singleton()->resolveURL($this->URL());
-
+        $url = $this-URL();
         if (!$url) {
             return false;
         }
@@ -128,3 +127,4 @@ class Icon extends DBField
         return IconField::create($this->name, $title);
     }
 }
+
