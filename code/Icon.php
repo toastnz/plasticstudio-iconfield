@@ -70,7 +70,7 @@ class Icon extends DBField
      **/
     public function IMG()
     {
-        $url = $this-URL();
+        $url = $this->URL();
         if (!$url) {
             return false;
         }
@@ -127,4 +127,5 @@ class Icon extends DBField
         return IconField::create($this->name, $title);
     }
 }
+
 
